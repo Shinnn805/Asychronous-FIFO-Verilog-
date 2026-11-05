@@ -95,14 +95,17 @@ begin
     if(!full) begin
         data_in = data;
         w_en = 1;
+
+        @(posedge wclk);
+        expected_mem[wr_idx] = data;
+        wr_idx = wr_idx + 1;
+
+        @(negedge wclk);
+        w_en = 0;
+    end else begin
+        $display("[%0t] WRITE BLOCKED - FIFO full, data=%0h discarded",
+                 $time, data);
     end
-
-    @(posedge wclk);
-    expected_mem[wr_idx] = data;
-    wr_idx = wr_idx + 1;
-
-    @(negedge wclk);
-    w_en = 0;
 end
 endtask
 
@@ -110,29 +113,32 @@ endtask
 task fifo_read;
 begin
     @(negedge rclk);
-    if(!empty)
+    if(!empty) begin
         r_en = 1;
 
-    @(posedge rclk);
-    @(negedge rclk);
-    r_en = 0;
+        @(posedge rclk);
+        @(negedge rclk);
+        r_en = 0;
 
-    // Chờ dữ liệu từ RAM đồng bộ ra đầu ra
-    @(posedge rclk);
+        // Chờ dữ liệu từ RAM đồng bộ ra đầu ra
+        @(posedge rclk);
 
-    expected_data = expected_mem[rd_idx];
-    rd_idx = rd_idx + 1;
+        expected_data = expected_mem[rd_idx];
+        rd_idx = rd_idx + 1;
 
-    #1;
+        #1;
 
-    if(data_out == expected_data) begin
-        $display("[%0t] PASS Expected=%0h Received=%0h",
-                 $time, expected_data, data_out);
-        pass = pass + 1;
+        if(data_out == expected_data) begin
+            $display("[%0t] PASS Expected=%0h Received=%0h",
+                     $time, expected_data, data_out);
+            pass = pass + 1;
+        end else begin
+            $display("[%0t] FAIL Expected=%0h Received=%0h",
+                     $time, expected_data, data_out);
+            fail = fail + 1;
+        end
     end else begin
-        $display("[%0t] FAIL Expected=%0h Received=%0h",
-                 $time, expected_data, data_out);
-        fail = fail + 1;
+        $display("[%0t] READ BLOCKED - FIFO empty", $time);
     end
 end
 endtask
@@ -170,6 +176,11 @@ end
 initial begin
     $monitor("T=%0t W_EN=%b R_EN=%b FULL=%b EMPTY=%b DIN=%h DOUT=%h",
               $time, w_en, r_en, full, empty, data_in, data_out);
+end
+
+initial begin
+    $dumpfile("async_fifo.vcd");
+    $dumpvars(0, tb);
 end
 
 endmodule
