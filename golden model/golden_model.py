@@ -1,21 +1,4 @@
-#!/usr/bin/env python3
-# =============================================================================
-#  golden_model.py - Golden model (Python 3) cho asynchronous_fifo
-#
-#  Chuc nang:
-#   1. AsyncFifoModel : mo hinh CHINH XAC TUNG CANH CLOCK cua RTL
-#        (con tro nhi phan/Gray, 2FF synchronizer, full/empty/almost_*,
-#         RAM 2 cong, data_out dang ky, reset bat dong bo active-high)
-#   2. Bo sinh kich thich: reset, dinh huong (ghi khi full, doc khi empty),
-#        ngau nhien dong thoi voi nhieu ti le clock, reset giua phien
-#   3. Kiem tra cheo bang hang doi ly tuong (collections.deque):
-#        dung thu tu FIFO, khong overflow/underflow, co full/empty khong sai
-#   4. Xuat stim.txt (dang song) va expected.txt (dau ra mong doi) de so khop
-#        voi RTL bang replay_tb.sv:  diff expected.txt actual.txt
-#
-#  Chay : python3 golden_model.py [--seed N] [--dir THU_MUC]
-#  Ma thoat: 0 = model nhat quan voi FIFO ly tuong, 1 = phat hien loi
-# =============================================================================
+
 import argparse
 import os
 import random
@@ -158,11 +141,11 @@ NS = 1000  # ps
 @dataclass
 class Phase:
     name: str
-    dur_ps: int          # thoi luong phase
-    w_half_ps: int       # nua chu ky wclk
-    r_half_ps: int       # nua chu ky rclk
-    p_w: int             # xac suat (%) w_en moi chu ky
-    p_r: int             # xac suat (%) r_en moi chu ky
+    dur_ps: int          
+    w_half_ps: int      
+    r_half_ps: int       
+    p_w: int             
+    p_r: int             
 
 
 PHASES = [
